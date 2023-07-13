@@ -61,7 +61,7 @@ function startGame() {
     scene.autoClear = false; // Color buffer
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
 
-    // Setup Sounds
+    // Setup Sounds Howler 
     music = new Howl({
         src: ['./resources/sounds/music.mp3'],
         autoplay: false,
@@ -76,9 +76,10 @@ function startGame() {
         html5: true,
         volume: 0.7
     });
+
+    // Speech Using BABYLON.Sound 
     speech = new BABYLON.Sound("speech", "./resources/sounds/speech.mp3", scene, function () {
-        // Sound has been downloaded & decoded
-        // speech.play();
+
     });
     speech.onended = function () {
         console.log("End Speech");
@@ -131,20 +132,9 @@ function startGame() {
     dirLight.shadowMinZ = -100;
     dirLight.shadowMaxZ = 100;
 
-    // Point Lights
-    // var pointLight = new BABYLON.PointLight("pointLight1", new BABYLON.Vector3(1.55, 1.52, -2.83), scene);
-    // pointLight.diffuse = new BABYLON.Color3.FromHexString("#ff975a");
-    // pointLight.intensity = 2;
-
-    // var pointLight2 = new BABYLON.PointLight("pointLight1", new BABYLON.Vector3(-1.5, 1.52, -2.83), scene);
-    // pointLight2.diffuse = new BABYLON.Color3.FromHexString("#ff975a");
-    // pointLight2.intensity = 2;
-
     var lightsNode = new BABYLON.TransformNode("_Lights_", scene);
     hemiLight.parent = lightsNode;
     dirLight.parent = lightsNode;
-    // pointLight.parent = lightsNode;
-    // pointLight2.parent = lightsNode;
 
     // Setup Lighting & Import Models
     setLighting();
@@ -222,9 +212,6 @@ function importBaseModel(model) {
             {
                 mesh.freezeWorldMatrix();
                 mesh.doNotSyncBoundingInfo = true;
-                // Occlusion
-                // mesh.occlusionRetryCount = 10;
-                // mesh.occlusionType = BABYLON.AbstractMesh.OCCLUSION_TYPE_OPTIMISTIC;
             }
 
             if (mesh.name.includes("Base") || mesh.name.includes("Table")) {
@@ -312,7 +299,6 @@ function importModel(model) {
                 animation.dispose();
             });
 
-
             // Clean Imported Animations
             animationsGLB = [];
 
@@ -364,6 +350,8 @@ function wait(ms) {
 }
 
 function animateFaceMorphs() {
+
+    // Eyes
     const animateEyes = () => {
         const randomNumber = Math.floor(Math.random() * 2) + 1;
         if (randomNumber === 1) {
@@ -388,6 +376,7 @@ function animateFaceMorphs() {
         }
     };
 
+    // Brow
     const animateBrow = () => {
 
         const random = Math.random() * 0.8;
@@ -442,6 +431,7 @@ function animateFaceMorphs() {
         scene.registerBeforeRender(animationCallback);
     };
 
+    // Face Anim Interval
     setInterval(animateEyes, 1000);
     setInterval(animateBrow, 1500);
     setInterval(animateSmile, 2000);
@@ -612,7 +602,6 @@ function startTimeline() {
                 // scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue;
                 jawOpenHead.influence = jawValue;
                 jawOpenTeeth.influence = jawValue;
-                // mouthPucker.influence = jawValue;
             });
             
         }        
@@ -658,12 +647,6 @@ function setShadows() {
         if (mesh.name != "skybox" 
         && mesh.name != "ground")
         {
-            // shadowGenerator.darkness = 0.1;
-
-            // shadowGenerator.bias = 0.00001;
-            // shadowGenerator.useBlurExponentialShadowMap = true;
-
-            // shadowGenerator = new BABYLON.ShadowGenerator(1024, dirLight, true);
             shadowGenerator.darkness = 0.4;
             shadowGenerator.bias = 0.001;
             shadowGenerator.usePercentageCloserFiltering = true;
@@ -717,10 +700,6 @@ function optimizeScene() {
     // Hardware Scaling
     var options = new BABYLON.SceneOptimizerOptions(28, 500);
     options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
-    // options.addOptimization(new BABYLON.MergeMeshesOptimization(0));
-    // options.addOptimization(new BABYLON.ShadowsOptimization(0));
-    // options.addOptimization(new BABYLON.ParticlesOptimization(0));
-    // options.addOptimization(new BABYLON.PostProcessesOptimization(0));
     var optimizer = new BABYLON.SceneOptimizer(scene, options);
     optimizer.start();
 
@@ -729,8 +708,6 @@ function optimizeScene() {
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
     scene.getAnimationRatio();
     scene.blockfreeActiveMeshesAndRenderingGroups = true;
-
-    // scene.performancePriority = BABYLON.ScenePerformancePriority.Intermediate;
 }
 
 // Post Processing
