@@ -157,13 +157,12 @@ html, body {
     left: 50%;
     top: 10px;
     transform: translateX(-50%);
-    width: 400px;
+    width: 460px;
     height: 120px;
     user-select: none;
     -webkit-user-select: none;
     /* filter: drop-shadow(1px 1px 8px #ffffff42);
     -webkit-filter: drop-shadow(1px 1px 8px #ffffff42); */
-
     background-image: url("../resources/images/logo-white-2.png");
     background-repeat: no-repeat;
     background-size: 50%;
