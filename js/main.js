@@ -11,7 +11,7 @@ var scene = createScene(engine, canvas);
 var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(-90), BABYLON.Tools.ToRadians(65), 6, BABYLON.Vector3.Zero(), scene);
 var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0,0,0), scene);
 var hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
-var shadowGenerator = new BABYLON.ShadowGenerator(2048, dirLight, true);
+var shadowGenerator = new BABYLON.ShadowGenerator(1024, dirLight, true);
 var videoTexture = new BABYLON.VideoTexture("vidtex","./resources/images/video.mp4", scene, true, true);
 
 var hdrTexture;
