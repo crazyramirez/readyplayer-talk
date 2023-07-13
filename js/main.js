@@ -445,12 +445,13 @@ function setIdleAnimObservers() {
 
 // Remove Idle Animation OnEnd Observers
 function removeAnimObservers() {  
-    idle1.stop();
-    idle2.stop();
-    idle3.stop();
+
     idle1.onAnimationEndObservable.remove(observer1);
     idle2.onAnimationEndObservable.remove(observer2);
     idle3.onAnimationEndObservable.remove(observer3);
+    idle1.stop();
+    idle2.stop();
+    idle3.stop();
 }
 
 // Play Sounds
