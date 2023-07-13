@@ -168,7 +168,7 @@ function createCamera() {
     camera.setTarget(new BABYLON.Vector3(0, 1.25, 0));
     camera.allowUpsideDown = false;
     camera.panningSensibility = 0;
-    camera.lowerRadiusLimit = 1.4;
+    camera.lowerRadiusLimit = 1.5;
     camera.upperRadiusLimit = 16;
     camera.lowerBetaLimit = 0.75;
     camera.upperBetaLimit = Math.PI / 2;
@@ -423,10 +423,39 @@ function animateFaceMorphs() {
         scene.registerBeforeRender(animationCallback);
     };
 
+    // Mouth Left Right
+    const animateMouthLeftRight = () => {
+        const random1 = Math.random() * 0.5;
+        
+        var randomLeftOrRight = Math.floor(Math.random() * 2);
+        const mesh = scene.getMeshByName("Wolf3D_Head");
+
+        var morphTarget1 = mesh.morphTargetManager.getTarget(21);
+        if (randomLeftOrRight === 1)
+            morphTarget1 = mesh.morphTargetManager.getTarget(22);
+        
+        const initialValue1 = morphTarget1.influence;
+        const targetValue1 = random1;
+
+        const numSteps = 30;
+        let currentStep = 0;
+
+        const animationCallback = () => {
+            currentStep++;
+            const t = currentStep / numSteps;
+            morphTarget1.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
+            if (currentStep >= numSteps) {
+                scene.unregisterBeforeRender(animationCallback);
+            }
+        };
+        scene.registerBeforeRender(animationCallback);
+    };
+
     // Face Anim Interval
-    setInterval(animateEyes, 1000);
+    setInterval(animateEyes, 900);
     setInterval(animateBrow, 1500);
     setInterval(animateSmile, 2000);
+    setInterval(animateMouthLeftRight, 2000);
 }
 
 // Setup Idle Animation OnEnd Observers
