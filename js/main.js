@@ -468,7 +468,8 @@ function playSounds() {
 
     if (music.paused)
     {
-        music.play();
+        music.volume = 0.6;
+        music.play();  
     }
 
     sfx1.volume = 0.8;
@@ -682,11 +683,6 @@ function showButtonHide() {
 
 function hideLoadingView() {
     BABYLON.Engine.audioEngine.unlock();
-
-    setTimeout(() => {
-        music.volume = 0.6;
-        music.play();  
-    }, 1000);
 
     document.getElementById("customBT").classList.add("fadeOut");
     document.getElementById("customBT").classList.remove("fadeIn");
