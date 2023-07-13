@@ -466,6 +466,11 @@ function playSounds() {
         speech.currentTime = 0;
     }
 
+    if (music.paused)
+    {
+        music.play();
+    }
+
     sfx1.volume = 0.8;
     sfx1.play();
 }
