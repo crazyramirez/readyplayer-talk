@@ -107,11 +107,11 @@ function startGame() {
     });
 
     // Glow Layer
-    var gl = new BABYLON.GlowLayer("glow", scene, {
-        mainTextureFixedSize: 256,
-        blurKernelSize: 128
-    });
-    gl.intensity = 0.7;
+    // var gl = new BABYLON.GlowLayer("glow", scene, {
+    //     mainTextureFixedSize: 256,
+    //     blurKernelSize: 128
+    // });
+    // gl.intensity = 0.7;
 
     // Create Camera
     createCamera();
