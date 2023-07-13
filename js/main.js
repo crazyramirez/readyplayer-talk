@@ -27,7 +27,7 @@ var animationOffset = 50;
 
 // Player
 var player;
-var modelName = "player_2";
+var modelName = "player";
 
 // Morph Targets
 var leftEye, rightEye;
