@@ -61,30 +61,22 @@ function startGame() {
     scene.autoClear = false; // Color buffer
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
 
-    // Setup Sounds Howler 
-    music = new Howl({
-        src: ['./resources/sounds/music.mp3'],
-        autoplay: false,
-        loop: true,
-        html5: true,
-        volume: 0.8
-    });
-    sfx1 = new Howl({
-        src: ['./resources/sounds/sfx1.mp3'],
-        autoplay: false,
-        loop: false,
-        html5: true,
-        volume: 0.7
+    // Setup Sounds 
+    music = new BABYLON.Sound("speech", "./resources/sounds/music.mp3", scene, function () {
     });
 
-    // Speech Using BABYLON.Sound 
+    // SFX Using HTML Audio to prevent Silence switch on mobile devices
+    sfx1 = document.createElement("audio");
+    sfx1.preload = "auto";
+    sfx1.src = "./resources/sounds/sfx1.mp3";
+
     speech = new BABYLON.Sound("speech", "./resources/sounds/speech.mp3", scene, function () {
-
     });
+
     speech.onended = function () {
         console.log("End Speech");
         talking = false;
-        setCurrentAnimAndIdleObrservers();
+        setIdleAnimObservers();
         setTimeout(() => {
             timelinePlaying = false;
             document.getElementById("client-logo").style.visibility = "visible";
@@ -97,9 +89,13 @@ function startGame() {
         scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.7, idle1, 0.7, false, 0.02, 0, idle1.duration, 0.8));
     };
 
+    // Add Speech Sound to a SoundTrack to get the analiser data
+    const speechTrack = new BABYLON.SoundTrack(scene);
+    speechTrack.addSound(speech);
+
     // Audio Analyser
     myAnalyser = new BABYLON.Analyser(scene);
-    BABYLON.Engine.audioEngine.connectToAnalyser(myAnalyser);
+    speechTrack.connectToAnalyser(myAnalyser);
     myAnalyser.FFT_SIZE = 64;
     myAnalyser.SMOOTHING = 0.07;
     // myAnalyser.drawDebugCanvas();
@@ -132,6 +128,7 @@ function startGame() {
     dirLight.shadowMinZ = -100;
     dirLight.shadowMaxZ = 100;
 
+    // Create Lights Transform Node
     var lightsNode = new BABYLON.TransformNode("_Lights_", scene);
     hemiLight.parent = lightsNode;
     dirLight.parent = lightsNode;
@@ -154,13 +151,13 @@ function checkWindowFocused() {
         paused = false;
         if (talking)
             speech.setVolume(1);
-        if (timer > 2 && !music.playing()) {
+        if (timer > 2 && !music.isPlaying) {
             music.play();
         }
     } else {
         paused = true;
         speech.setVolume(0);
-        if (music && music.playing())
+        if (music && music.isPlaying)
         {
             music.pause();
         }
@@ -189,14 +186,16 @@ function createCamera() {
 // Import Base Model
 function importBaseModel(model) {
     return BABYLON.SceneLoader.ImportMeshAsync(null, "./resources/models/", model, scene).then((result) => {
+        
         // Add ShadowCaster to Spheres
         shadowGenerator.addShadowCaster(scene.getMeshByName("Sphere_1"));
         shadowGenerator.addShadowCaster(scene.getMeshByName("Sphere_2"));
 
+        // Start Clouds Animations
         scene.getAnimationGroupByName("clouds_anim").speedRatio = 0.2;
         scene.getAnimationGroupByName("clouds_anim").play(true);
         
-
+        // Rename Base Root Node
         result.meshes[0].name = "_MainScene_";
 
         // Setup Video Texture
@@ -216,6 +215,7 @@ function importBaseModel(model) {
                 mesh.doNotSyncBoundingInfo = true;
             }
 
+            // Setup Lightmaps
             if (mesh.name.includes("Base") || mesh.name.includes("Table")) {
                 var lightmap = new BABYLON.Texture("./resources/textures/" + mesh.parent.name + "_lighting.jpg");
 
@@ -240,7 +240,6 @@ function importBaseModel(model) {
                     mesh.material.roughness = 0.3;
                     mesh.receiveShadows = true;
                 }
-
                 // mesh.material.freeze();
             }
 
@@ -318,7 +317,7 @@ function importModel(model) {
             currentAnimation = idle1;
             idle1.play(false);
 
-            setCurrentAnimAndIdleObrservers();
+            setIdleAnimObservers();
 
             setReflections();
             setShadows();
@@ -345,8 +344,8 @@ function wait(ms) {
     });
 }
 
+// Animate Face Morphs using intervals
 function animateFaceMorphs() {
-
     // Eyes
     const animateEyes = () => {
         const randomNumber = Math.floor(Math.random() * 2) + 1;
@@ -356,7 +355,6 @@ function animateFaceMorphs() {
             wait(100).then(() => {
                 leftEye.influence = 0;
                 rightEye.influence = 0;
-
                 const randomNumber2 = Math.floor(Math.random() * 2) + 1;
                 if (randomNumber2 === 1) {
                     wait(100).then(() => {
@@ -397,7 +395,6 @@ function animateFaceMorphs() {
                 scene.unregisterBeforeRender(animationCallback);
             }
         };
-
         scene.registerBeforeRender(animationCallback);
     };
 
@@ -423,7 +420,6 @@ function animateFaceMorphs() {
                 scene.unregisterBeforeRender(animationCallback);
             }
         };
-
         scene.registerBeforeRender(animationCallback);
     };
 
@@ -433,8 +429,8 @@ function animateFaceMorphs() {
     setInterval(animateSmile, 2000);
 }
 
-
-function setCurrentAnimAndIdleObrservers() {  
+// Setup Idle Animation OnEnd Observers
+function setIdleAnimObservers() {  
     // Idle Anim Logic
     observer1 = idle1.onAnimationEndObservable.add(function () {  
         scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(idle1, 0.8, idle2, 0.8, false, 0.02));    
@@ -447,23 +443,29 @@ function setCurrentAnimAndIdleObrservers() {
     });
 }
 
+// Remove Idle Animation OnEnd Observers
+function removeAnimObservers() {  
+    idle1.stop();
+    idle2.stop();
+    idle3.stop();
+    idle1.onAnimationEndObservable.remove(observer1);
+    idle2.onAnimationEndObservable.remove(observer2);
+    idle3.onAnimationEndObservable.remove(observer3);
+}
+
 // Play Sounds
 function playSounds() {  
-    if (sfx1 && !sfx1.playing()) {
-        sfx1.stop();
-        sfx1.currentTime = 0;
-    }
-    if (speech && !speech.paused) {
+
+    if (speech && speech.isPlaying) {
         speech.stop();
         speech.currentTime = 0;
     }
 
-    if (music && !music.playing()) {
+    if (music && !music.isPlaying) {
         music.volume = 0.6;
         music.play();  
     }
 
-    sfx1.volume = 0.8;
     sfx1.play();
 }
 
@@ -542,13 +544,10 @@ function startTimeline() {
         
         if (timer === 1)
         {
-            idle1.onAnimationEndObservable.remove(observer1);
-            idle2.onAnimationEndObservable.remove(observer2);
-            idle3.onAnimationEndObservable.remove(observer3);
-            idle1.stop();
-            idle2.stop();
-            idle3.stop();
-    
+
+            // Remove Idle Animation Observers
+            removeAnimObservers();
+
             // Idle Anim Logic
             scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration-50, 1));    
             var spheresAnim1 = scene.getAnimationGroupByName("move_anim");
