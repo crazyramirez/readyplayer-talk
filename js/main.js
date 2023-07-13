@@ -161,7 +161,9 @@ function checkWindowFocused() {
         paused = true;
         speech.setVolume(0);
         if (music && music.playing())
+        {
             music.pause();
+        }
     }
 }
 
@@ -464,11 +466,6 @@ function playSounds() {
         speech.currentTime = 0;
     }
 
-    if (music && music.paused)
-    {
-        music.volume = 0.6;
-        music.play();  
-    }
     sfx1.volume = 0.8;
     sfx1.play();
 }
@@ -681,6 +678,9 @@ function showButtonHide() {
 function hideLoadingView() {
     BABYLON.Engine.audioEngine.unlock();
 
+    music.volume = 0.6;
+    music.play();  
+
     document.getElementById("customBT").classList.add("fadeOut");
     document.getElementById("customBT").classList.remove("fadeIn");
     document.getElementById("loadingDiv").classList.add("fadeOut");
@@ -696,7 +696,6 @@ function hideLoadingView() {
 function optimizeScene() {
 
     // scene.skipFrustumClipping = true;
-
     // Hardware Scaling
     var options = new BABYLON.SceneOptimizerOptions(28, 500);
     options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
