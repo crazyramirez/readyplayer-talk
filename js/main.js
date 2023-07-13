@@ -31,8 +31,8 @@ var modelName = "player";
 
 // Morph Targets
 var leftEye, rightEye;
-var morphMultiplier_1 = 0.6;
-var morphMultiplier_2 = 0.9;
+var morphMultiplier_1 = 0.65;
+var morphMultiplier_2 = 1;
 
 var paused = false;
 var timer = 0;
@@ -95,7 +95,7 @@ function startGame() {
     myAnalyser = new BABYLON.Analyser(scene);
     speechTrack.connectToAnalyser(myAnalyser);
     myAnalyser.FFT_SIZE = 64;
-    myAnalyser.SMOOTHING = 0.07;
+    myAnalyser.SMOOTHING = 0.03;
     // myAnalyser.drawDebugCanvas();
 
     // Stop All Animations Init
@@ -181,73 +181,75 @@ function createCamera() {
     camera.radius = 15;
 }
 
-// Import Base Model
-function importBaseModel(model) {
-    return BABYLON.SceneLoader.ImportMeshAsync(null, "./resources/models/", model, scene).then((result) => {
-        
-        // Add ShadowCaster to Spheres
-        shadowGenerator.addShadowCaster(scene.getMeshByName("Sphere_1"));
-        shadowGenerator.addShadowCaster(scene.getMeshByName("Sphere_2"));
+async function importBaseModel(model) {
+    const result = await BABYLON.SceneLoader.ImportMeshAsync(null, "./resources/models/", model, scene);
+    const sphere1 = scene.getMeshByName("Sphere_1");
+    const sphere2 = scene.getMeshByName("Sphere_2");
+    const tvMaterial = scene.getMaterialByName("TV");
+    const cloudsAnim = scene.getAnimationGroupByName("clouds_anim");
+    const lightingTextureCache = {};
 
-        // Start Clouds Animations
-        scene.getAnimationGroupByName("clouds_anim").speedRatio = 0.2;
-        scene.getAnimationGroupByName("clouds_anim").play(true);
-        
-        // Rename Base Root Node
-        result.meshes[0].name = "_MainScene_";
+    // Add ShadowCaster to Spheres
+    shadowGenerator.addShadowCaster(sphere1);
+    shadowGenerator.addShadowCaster(sphere2);
 
-        // Setup Video Texture
-        scene.getMaterialByName("TV").albedoTexture = videoTexture;
-        scene.getMaterialByName("TV").emissiveTexture = videoTexture;
-        scene.getMaterialByName("TV").emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-        scene.getMaterialByName("TV").roughness = 0.2;
-        videoTexture.video.pause();
+    // Start Clouds Animations
+    cloudsAnim.speedRatio = 0.2;
+    cloudsAnim.play(true);
 
-        // Setup Lightmaps
-        result.meshes.forEach((mesh) => {
-            mesh.isPickable = false;
+    // Setup Video Texture
+    tvMaterial.albedoTexture = videoTexture;
+    tvMaterial.emissiveTexture = videoTexture;
+    tvMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    tvMaterial.roughness = 0.2;
+    videoTexture.video.pause();
 
-            if (!mesh.name.includes("Sphere"))
-            {
-                mesh.freezeWorldMatrix();
-                mesh.doNotSyncBoundingInfo = true;
+    result.meshes.forEach((mesh) => {
+        const meshName = mesh.name;
+        const { material } = mesh;
+
+        mesh.isPickable = false;
+
+        if (!meshName.includes("Sphere")) {
+            mesh.freezeWorldMatrix();
+            mesh.doNotSyncBoundingInfo = true;
+        }
+
+        if (meshName.includes("Base") || meshName.includes("Table")) {
+            const lightmapPath = "./resources/textures/" + mesh.parent.name + "_lighting.jpg";
+
+            let lightmap = lightingTextureCache[lightmapPath];
+            if (!lightmap) {
+                lightmap = new BABYLON.Texture(lightmapPath);
+                lightingTextureCache[lightmapPath] = lightmap;
             }
 
-            // Setup Lightmaps
-            if (mesh.name.includes("Base") || mesh.name.includes("Table")) {
-                var lightmap = new BABYLON.Texture("./resources/textures/" + mesh.parent.name + "_lighting.jpg");
+            material.lightmapTexture = lightmap;
+            material.useLightmapAsShadowmap = true;
+            material.lightmapTexture.uAng = Math.PI;
+            material.lightmapTexture.level = 1.6;
+            material.lightmapTexture.coordinatesIndex = 1;
 
-                // console.log("Mesh: " +  mesh.name);
-                // console.log("Lightmap: " +  lightmap.name);
-
-                mesh.material.lightmapTexture = lightmap;
-                mesh.material.useLightmapAsShadowmap = true;
-                mesh.material.lightmapTexture.uAng = Math.PI;
-                mesh.material.lightmapTexture.level = 1.6;
-                mesh.material.lightmapTexture.coordinatesIndex = 1;
-
-                if (mesh.name.includes("Base_primitive0")) {
-                    mesh.material.albedoColor = new BABYLON.Color3(0.99, 0.99, 0.99);
-                    mesh.material.metallic = 0.6;
-                    mesh.material.roughness = 0.6;
-                    mesh.material.specular = new BABYLON.Color3(0, 0, 0);
-                    mesh.material.specularColor = new BABYLON.Color3(0, 0, 0);
-                    mesh.receiveShadows = true;
-                }
-                if (mesh.name.includes("Base_primitive1")) {
-                    mesh.material.roughness = 0.3;
-                    mesh.receiveShadows = true;
-                }
-                // mesh.material.freeze();
+            if (meshName.includes("Base_primitive0")) {
+                material.albedoColor = new BABYLON.Color3(0.99, 0.99, 0.99);
+                material.metallic = 0.6;
+                material.roughness = 0.6;
+                material.specular = new BABYLON.Color3(0, 0, 0);
+                material.specularColor = new BABYLON.Color3(0, 0, 0);
+                mesh.receiveShadows = true;
             }
-
-            if (mesh.name.includes("TV")) {
-                mesh.material.lightmapTexture = null;
+            if (meshName.includes("Base_primitive1")) {
+                material.roughness = 0.3;
+                mesh.receiveShadows = true;
             }
+        }
 
-        });
+        if (meshName.includes("TV")) {
+            material.lightmapTexture = null;
+        }
     });
 }
+
 
 // Setup Animations & Player
 var animationsGLB = [];
@@ -346,116 +348,110 @@ function wait(ms) {
 
 // Animate Face Morphs using intervals
 function animateFaceMorphs() {
-    // Eyes
-    const animateEyes = () => {
-        const randomNumber = Math.floor(Math.random() * 2) + 1;
+
+    const mesh = scene.getMeshByName("Wolf3D_Head");
+
+    const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    // Animate Eyes
+    const animateEyes = async () => {
+        const randomNumber = getRandomNumber(1, 2);
         if (randomNumber === 1) {
             leftEye.influence = 1;
             rightEye.influence = 1;
-            wait(100).then(() => {
+            await wait(100);
+            leftEye.influence = 0;
+            rightEye.influence = 0;
+            const randomNumber2 = getRandomNumber(1, 2);
+            if (randomNumber2 === 1) {
+                await wait(100);
+                leftEye.influence = 1;
+                rightEye.influence = 1;
+                await wait(100);
                 leftEye.influence = 0;
                 rightEye.influence = 0;
-                const randomNumber2 = Math.floor(Math.random() * 2) + 1;
-                if (randomNumber2 === 1) {
-                    wait(100).then(() => {
-                        leftEye.influence = 1;
-                        rightEye.influence = 1;
-                        wait(100).then(() => {
-                            leftEye.influence = 0;
-                            rightEye.influence = 0;
-                        });
-                    });
-                }
-            });
+            }
         }
     };
-
-    // Brow
-    const animateBrow = () => {
-
-        const random = Math.random() * 0.8;
-        const mesh = scene.getMeshByName("Wolf3D_Head");
-
-        const morphTarget1 = mesh.morphTargetManager.getTarget(2);
-        const morphTarget2 = mesh.morphTargetManager.getTarget(3);
-        const morphTarget3 = mesh.morphTargetManager.getTarget(4);
-        const initialValue1 = morphTarget2.influence;
-        const targetValue1 = random;
-
-        const numSteps = 15;
+    
+    // animateMorphTarget registerBeforeRender
+    const animateMorphTarget = (targetIndex, initialValue, targetValue, numSteps) => {
         let currentStep = 0;
+        const morphTarget = mesh.morphTargetManager.getTarget(targetIndex);
 
         const animationCallback = () => {
             currentStep++;
             const t = currentStep / numSteps;
-            morphTarget1.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
-            morphTarget2.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
-            morphTarget3.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
+            morphTarget.influence = BABYLON.Scalar.Lerp(initialValue, targetValue, t);
             if (currentStep >= numSteps) {
                 scene.unregisterBeforeRender(animationCallback);
             }
         };
+
         scene.registerBeforeRender(animationCallback);
+    };
+
+    // Brows
+    const animateBrow = () => {
+        const random = Math.random() * 0.8;
+        const initialValue = mesh.morphTargetManager.getTarget(2).influence;
+        const targetValue = random;
+        animateMorphTarget(2, initialValue, targetValue, 15);
+        animateMorphTarget(3, initialValue, targetValue, 15);
+        animateMorphTarget(4, initialValue, targetValue, 15);
     };
 
     // Smile
     const animateSmile = () => {
-        const random = Math.random() * 0.2;
-        const mesh = scene.getMeshByName("Wolf3D_Head");
-
-        const morphTarget1 = mesh.morphTargetManager.getTarget(47);
-        const morphTarget2 = mesh.morphTargetManager.getTarget(48);
-        const initialValue1 = morphTarget1.influence;
-        const targetValue1 = random;
-
-        const numSteps = 30;
-        let currentStep = 0;
-
-        const animationCallback = () => {
-            currentStep++;
-            const t = currentStep / numSteps;
-            morphTarget1.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
-            morphTarget2.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
-            if (currentStep >= numSteps) {
-                scene.unregisterBeforeRender(animationCallback);
-            }
-        };
-        scene.registerBeforeRender(animationCallback);
+        const random = Math.random() * 0.25 + 0.05;
+        const initialValue = mesh.morphTargetManager.getTarget(47).influence;
+        const targetValue = random;
+        animateMorphTarget(47, initialValue, targetValue, 30);
+        animateMorphTarget(48, initialValue, targetValue, 30);
     };
 
-    // Mouth Left Right
+    // Mouth Left / Right
     const animateMouthLeftRight = () => {
         const random1 = Math.random() * 0.7;
-        
-        var randomLeftOrRight = Math.floor(Math.random() * 2);
-        const mesh = scene.getMeshByName("Wolf3D_Head");
-
-        var morphTarget1 = mesh.morphTargetManager.getTarget(21);
-        if (randomLeftOrRight === 1)
-            morphTarget1 = mesh.morphTargetManager.getTarget(22);
-        
-        const initialValue1 = morphTarget1.influence;
-        const targetValue1 = random1;
-
-        const numSteps = 30;
-        let currentStep = 0;
-
-        const animationCallback = () => {
-            currentStep++;
-            const t = currentStep / numSteps;
-            morphTarget1.influence = BABYLON.Scalar.Lerp(initialValue1, targetValue1, t);
-            if (currentStep >= numSteps) {
-                scene.unregisterBeforeRender(animationCallback);
-            }
-        };
-        scene.registerBeforeRender(animationCallback);
+        const randomLeftOrRight = getRandomNumber(0, 1);
+        const targetIndex = randomLeftOrRight === 1 ? 22 : 21;
+        const initialValue = mesh.morphTargetManager.getTarget(targetIndex).influence;
+        const targetValue = random1;
+        animateMorphTarget(targetIndex, initialValue, targetValue, 90);
     };
 
-    // Face Anim Interval
-    setInterval(animateEyes, 900);
-    setInterval(animateBrow, 1500);
+    // Nose
+    const animateNose = () => {
+        const random = Math.random() * 0.7;
+        const initialValue = mesh.morphTargetManager.getTarget(17).influence;
+        const targetValue = random;
+        animateMorphTarget(17, initialValue, targetValue, 60);
+        animateMorphTarget(18, initialValue, targetValue, 60);
+    };
+
+    // Jaw Forward
+    const animateJawForward = () => {
+        const random = Math.random() * 0.5;
+        const initialValue = mesh.morphTargetManager.getTarget(9).influence;
+        const targetValue = random;
+        animateMorphTarget(9, initialValue, targetValue, 60);
+    };
+
+    // Cheeks
+    const animateCheeks = () => {
+        const random = Math.random() * 1;
+        const initialValue = mesh.morphTargetManager.getTarget(32).influence;
+        const targetValue = random;
+        animateMorphTarget(32, initialValue, targetValue, 60);
+        animateMorphTarget(33, initialValue, targetValue, 60);
+    };
+
+    setInterval(animateEyes, 800);
+    setInterval(animateBrow, 1200);
     setInterval(animateSmile, 2000);
-    setInterval(animateMouthLeftRight, 2000);
+    setInterval(animateMouthLeftRight, 1500);
+    setInterval(animateNose, 1000);
+    setInterval(animateJawForward, 2000);
+    setInterval(animateCheeks, 1200);
 }
 
 // Setup Idle Animation OnEnd Observers
@@ -539,43 +535,41 @@ function* animationBlending(fromAnim, fromAnimSpeedRatio, toAnim, toAnimSpeedRat
 }
 
 
-// Timeline
-var timelineInterval;
+// Start Timeline
+let timelineInterval;
 function startTimeline() {
-    if (timelineInterval)
-        clearInterval(timelineInterval);
+    clearInterval(timelineInterval);
 
     // Step 1 - Camera Animation
-    var animationDuration = 250;
+    const animationDuration = 250;
     camera.alpha = 1.57;
     camera.beta = 1.42;
     BABYLON.Animation.CreateAndStartAnimation("cameraAnim", camera, "radius", 50, animationDuration, 15, 2.4, BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE, undefined, () => {
-        camera.useAutoRotationBehavior = true;  
+        camera.useAutoRotationBehavior = true;
         camera.autoRotationBehavior.idleRotationSpeed = 0.025;
     });
 
     // Clear Timer
-    timer = 0;
+    let timer = 0;
 
+    // Time Interval
     timelineInterval = setInterval(() => {
-
         timer++;
+
         // console.log("Timer: " + timer);
-        
-        if (timer === 1)
-        {
+        if (timer === 1) {
             // Remove Idle Animation Observers
             removeAnimObservers();
-            
+
             // Idle to Salute Anim
-            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration-animationOffset, 1));    
-            var spheresAnim1 = scene.getAnimationGroupByName("move_anim");
-            
+            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration - animationOffset, 1));
+            const spheresAnim1 = scene.getAnimationGroupByName("move_anim");
+
             // Spheres Animation
             spheresAnim1.speedRatio = 0.5;
             spheresAnim1.play(false);
-            spheresAnim1.onAnimationEndObservable.add(function () {  
-                var spheresAnim2 = scene.getAnimationGroupByName("rotate_anim");
+            spheresAnim1.onAnimationEndObservable.add(function () {
+                const spheresAnim2 = scene.getAnimationGroupByName("rotate_anim");
                 spheresAnim2.speedRatio = 0.35;
                 spheresAnim2.play(true);
             });
@@ -588,45 +582,41 @@ function startTimeline() {
                 if (!talking) {
                     speech.volume = 1;
                     talking = true;
-                    speech.play();  
+                    speech.play();
                 }
             }, 200);
 
             // Show Client Card
             setTimeout(() => {
-                var clientCardContainer = document.getElementById("client-card-container");
-                if (clientCardContainer.style.visibility === "hidden")
-                {
+                const clientCardContainer = document.getElementById("client-card-container");
+                if (clientCardContainer.style.visibility === "hidden") {
                     clientCardContainer.style.visibility = "visible";
                     clientCardContainer.classList.add("fadeIn");
                     clientCardContainer.classList.remove("fadeOut");
                 }
             }, 800);
-            
+
             // RegisterBeforeRender Morph Target Mouth
-            scene.registerBeforeRender(function () {  
-                var workingArray = myAnalyser.getByteFrequencyData();
-                var jawValue = 0;
+            scene.registerBeforeRender(function () {
+                const workingArray = myAnalyser.getByteFrequencyData();
+                let jawValue = 0;
 
                 if (talking) {
                     // console.log("Frequency: " + workingArray[5] / 512);
                     jawValue = workingArray[5] / 512 * morphMultiplier_1;
                 }
 
-                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue*2;
+                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue * 2;
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34).influence = jawValue;
                 scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34).influence = jawValue;
-                // scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(19).influence = jawValue*4;
-                // scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(20).influence = jawValue*4;
             });
-            
-        }        
+        }
 
         // Check Talking Animations -- Start after 3 sec.
         if (talking && speech.isPlaying && timer >= 3 && !currentAnimation.isPlaying) {
-            var newTalkingAnim;
+            let newTalkingAnim;
             do {
-                var random2 = Math.floor(Math.random() * 3) + 1;
+                const random2 = Math.floor(Math.random() * 3) + 1;
                 if (random2 === 1)
                     newTalkingAnim = talking1;
                 else if (random2 === 2)
@@ -634,11 +624,9 @@ function startTimeline() {
                 else if (random2 === 3)
                     newTalkingAnim = talking3;
             } while (newTalkingAnim === currentAnimation);
-            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, animationOffset, newTalkingAnim.duration-animationOffset, 0.6));
+            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, animationOffset, newTalkingAnim.duration - animationOffset, 0.75));
         }
-
     }, 1000);
-
 }
 
 // Environment Lighting
@@ -733,8 +721,6 @@ function setPostProcessing() {
     pipeline.imageProcessing.exposure = 1.02; // 1 by default
     pipeline.samples = 4;
     pipeline.bloomEnabled = false;
-    // pipeline.sharpenEnabled = true;
-    // pipeline.sharpen.edgeAmount = 0.2;
 }
 
 // Resize Window
