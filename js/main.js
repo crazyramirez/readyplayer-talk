@@ -518,7 +518,6 @@ function startTimeline() {
 
     // Step 1 - Camera Animation
     var animationDuration = 250;
-
     camera.alpha = 1.57;
     camera.beta = 1.42;
     BABYLON.Animation.CreateAndStartAnimation("cameraAnim", camera, "radius", 50, animationDuration, 15, 2.4, BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE, undefined, () => {
@@ -588,7 +587,6 @@ function startTimeline() {
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue*2;
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34).influence = jawValue;
                 scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34).influence = jawValue;
-                // jawOpenTeeth.influence = jawValue;
             });
             
         }        
