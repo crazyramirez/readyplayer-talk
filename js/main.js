@@ -455,7 +455,7 @@ function setCurrentAnimAndIdleObrservers() {
 
 // Play Sounds
 function playSounds() {  
-    if (sfx1 && !sfx1.paused)
+    if (sfx1 && !sfx1.playing()) {
     {
         sfx1.stop();
         sfx1.currentTime = 0;
@@ -466,7 +466,7 @@ function playSounds() {
         speech.currentTime = 0;
     }
 
-    if (music.paused)
+    if (music && !music.playing()) {
     {
         music.volume = 0.6;
         music.play();  
