@@ -23,6 +23,7 @@ var salute;
 var observer1, observer2, observer3;
 var currentAnimation;
 var talking;
+var animationOffset = 50;
 
 // Player
 var player;
@@ -48,7 +49,6 @@ function createScene(engine, canvas) {
     var scene = new BABYLON.Scene(engine);
     return scene;
 }
-
 
 // Start Game
 function startGame() {
@@ -175,7 +175,7 @@ function createCamera() {
     camera.lowerBetaLimit = 0.75;
     camera.upperBetaLimit = Math.PI / 2;
     camera.panningSensibility = 0;
-    camera.pinchDeltaPercentage = 0.00050;
+    camera.pinchDeltaPercentage = 0.00060;
     camera.wheelPrecision = 60;
     camera.useBouncingBehavior = false;
     camera.alpha = 1.57;
@@ -550,7 +550,7 @@ function startTimeline() {
             removeAnimObservers();
 
             // Idle Anim Logic
-            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration-50, 1));    
+            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration-animationOffset, 1));    
             var spheresAnim1 = scene.getAnimationGroupByName("move_anim");
             
             spheresAnim1.speedRatio = 0.5;
@@ -614,7 +614,7 @@ function startTimeline() {
                     newTalkingAnim = talking3;
             } while (newTalkingAnim === currentAnimation);
         
-            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, 50, newTalkingAnim.duration-50, 0.6));
+            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, animationOffset, newTalkingAnim.duration-animationOffset, 0.6));
         }
 
     }, 1000);
