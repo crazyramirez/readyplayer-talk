@@ -164,7 +164,7 @@ html, body {
     /* filter: drop-shadow(1px 1px 8px #ffffff42);
     -webkit-filter: drop-shadow(1px 1px 8px #ffffff42); */
 
-    background-image: url("../resources/images/logo-white.png");
+    background-image: url("../resources/images/logo-white-2.png");
     background-repeat: no-repeat;
     background-size: 50%;
     background-position: center;
@@ -290,7 +290,6 @@ html, body {
             opacity: 0;
             bottom: -30px;
         }
-    
         100% {
             opacity: 1;
             bottom: 30px;
@@ -298,7 +297,7 @@ html, body {
     }
     
     #client-logo {
-        width: 80vw;
+        width: 75vw;
         height: 100px;
     }
 
