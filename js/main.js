@@ -677,14 +677,16 @@ function showButtonHide() {
         optimizeScene();
     }, 1200);
 
-    // setPostProcessing();
+    setPostProcessing();
 }
 
 function hideLoadingView() {
     BABYLON.Engine.audioEngine.unlock();
 
-    music.volume = 0.6;
-    music.play();  
+    setTimeout(() => {
+        music.volume = 0.6;
+        music.play();  
+    }, 1000);
 
     document.getElementById("customBT").classList.add("fadeOut");
     document.getElementById("customBT").classList.remove("fadeIn");
