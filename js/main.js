@@ -34,7 +34,6 @@ var leftEye, rightEye;
 var morphMultiplier_1 = 0.6;
 var morphMultiplier_2 = 0.9;
 
-var timelinePlaying = false;
 var paused = false;
 var timer = 0;
 
@@ -78,7 +77,6 @@ function startGame() {
         talking = false;
         setIdleAnimObservers();
         setTimeout(() => {
-            timelinePlaying = false;
             document.getElementById("client-logo").style.visibility = "visible";
             document.getElementById("client-logo").classList.remove("fadeOut");
             document.getElementById("client-logo").classList.add("fadeIn");
@@ -308,6 +306,7 @@ function importModel(model) {
             idle1 = scene.getAnimationGroupByName(modelName + "_M_Standing_Idle_Variations_001");
             idle2 = scene.getAnimationGroupByName(modelName + "_M_Standing_Idle_Variations_002");
             idle3 = scene.getAnimationGroupByName(modelName + "_M_Standing_Idle_Variations_003");
+            
             talking1 = scene.getAnimationGroupByName(modelName + "_M_Talking_Variations_006");
             talking2 = scene.getAnimationGroupByName(modelName + "_M_Talking_Variations_005");
             talking3 = scene.getAnimationGroupByName(modelName + "_M_Talking_Variations_007");
@@ -329,9 +328,10 @@ function importModel(model) {
 
             console.log(scene.getMeshByName("Wolf3D_Head").morphTargetManager);
 
-            // Jaw Forward
+            // Setup Init Jaw Forward
             scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(9).influence = 0.4;
-            // Animate Blink Eyes
+            
+            // Animate Face Morphs
             animateFaceMorphs();
         });
 }
@@ -375,7 +375,7 @@ function animateFaceMorphs() {
 
         const random = Math.random() * 0.8;
         const mesh = scene.getMeshByName("Wolf3D_Head");
-        // Brow Inner
+
         const morphTarget1 = mesh.morphTargetManager.getTarget(2);
         const morphTarget2 = mesh.morphTargetManager.getTarget(3);
         const morphTarget3 = mesh.morphTargetManager.getTarget(4);
@@ -402,7 +402,7 @@ function animateFaceMorphs() {
     const animateSmile = () => {
         const random = Math.random() * 0.2;
         const mesh = scene.getMeshByName("Wolf3D_Head");
-        // Brow Inner
+
         const morphTarget1 = mesh.morphTargetManager.getTarget(47);
         const morphTarget2 = mesh.morphTargetManager.getTarget(48);
         const initialValue1 = morphTarget1.influence;
@@ -431,7 +431,6 @@ function animateFaceMorphs() {
 
 // Setup Idle Animation OnEnd Observers
 function setIdleAnimObservers() {  
-    // Idle Anim Logic
     observer1 = idle1.onAnimationEndObservable.add(function () {  
         scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(idle1, 0.8, idle2, 0.8, false, 0.02));    
     });
@@ -445,7 +444,6 @@ function setIdleAnimObservers() {
 
 // Remove Idle Animation OnEnd Observers
 function removeAnimObservers() {  
-
     idle1.onAnimationEndObservable.remove(observer1);
     idle2.onAnimationEndObservable.remove(observer2);
     idle3.onAnimationEndObservable.remove(observer3);
@@ -456,31 +454,25 @@ function removeAnimObservers() {
 
 // Play Sounds
 function playSounds() {  
-
+    sfx1.play();
     if (speech && speech.isPlaying) {
         speech.stop();
         speech.currentTime = 0;
     }
-
     if (music && !music.isPlaying) {
         music.volume = 0.6;
         music.play();  
     }
-
-    sfx1.play();
 }
 
-// startBTPressed Function
+// startBTPressed Function from Client Logo
 var disableButton = false;
 function startBTPressed() {  
-
     talking = false;
-
-    if (timelinePlaying)
-        return;
+    camera.attachControl(canvas, true);
 
     playSounds();
-    timelinePlaying = true;
+
     videoTexture.video.play();
     timer = 0;
 
@@ -492,8 +484,7 @@ function startBTPressed() {
 }
 
 // Animation Blending
-function* animationBlending(fromAnim, fromAnimSpeedRatio, toAnim, toAnimSpeedRatio, repeat, speed, toAnimFrameIn, toAnimFrameOut, maxWeight)
-{
+function* animationBlending(fromAnim, fromAnimSpeedRatio, toAnim, toAnimSpeedRatio, repeat, speed, toAnimFrameIn, toAnimFrameOut, maxWeight) {
     if (!toAnimFrameIn)
         toAnimFrameIn = 0;
     if (!toAnimFrameOut)
@@ -531,11 +522,11 @@ function startTimeline() {
     camera.alpha = 1.57;
     camera.beta = 1.42;
     BABYLON.Animation.CreateAndStartAnimation("cameraAnim", camera, "radius", 50, animationDuration, 15, 2.4, BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE, undefined, () => {
-        camera.attachControl(canvas, true);
         camera.useAutoRotationBehavior = true;  
         camera.autoRotationBehavior.idleRotationSpeed = 0.025;
     });
 
+    // Clear Timer
     timer = 0;
 
     timelineInterval = setInterval(() => {
@@ -545,14 +536,14 @@ function startTimeline() {
         
         if (timer === 1)
         {
-
             // Remove Idle Animation Observers
             removeAnimObservers();
-
-            // Idle Anim Logic
+            
+            // Idle to Salute Anim
             scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 1.0, salute, 1.0, false, 0.015, 0, salute.duration-animationOffset, 1));    
             var spheresAnim1 = scene.getAnimationGroupByName("move_anim");
             
+            // Spheres Animation
             spheresAnim1.speedRatio = 0.5;
             spheresAnim1.play(false);
             spheresAnim1.onAnimationEndObservable.add(function () {  
@@ -573,7 +564,7 @@ function startTimeline() {
                 }
             }, 200);
 
-            // Show Card
+            // Show Client Card
             setTimeout(() => {
                 var clientCardContainer = document.getElementById("client-card-container");
                 if (clientCardContainer.style.visibility === "hidden")
@@ -584,6 +575,7 @@ function startTimeline() {
                 }
             }, 800);
             
+            // RegisterBeforeRender Morph Target Mouth
             scene.registerBeforeRender(function () {  
                 var workingArray = myAnalyser.getByteFrequencyData();
                 var jawValue = 0;
@@ -601,7 +593,7 @@ function startTimeline() {
             
         }        
 
-        // Check Talking Animations after 4 sec.
+        // Check Talking Animations -- Start after 3 sec.
         if (talking && speech.isPlaying && timer >= 3 && !currentAnimation.isPlaying) {
             var newTalkingAnim;
             do {
@@ -613,7 +605,6 @@ function startTimeline() {
                 else if (random2 === 3)
                     newTalkingAnim = talking3;
             } while (newTalkingAnim === currentAnimation);
-        
             scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, animationOffset, newTalkingAnim.duration-animationOffset, 0.6));
         }
 
@@ -662,20 +653,20 @@ function setReflections() {
     });
 }
 
-// Hide Loading View
+// Show START DEMO BUTTON
 function showButtonHide() {
     setTimeout(() => {
         document.getElementById("customBT").style.visibility = "visible";
         document.getElementById("customBT").classList.add("fadeIn");
         optimizeScene();
     }, 1200);
-
     setPostProcessing();
 }
 
+// Hide Loading View
 function hideLoadingView() {
+    // Unlock Audio Engine
     BABYLON.Engine.audioEngine.unlock();
-
     document.getElementById("customBT").classList.add("fadeOut");
     document.getElementById("customBT").classList.remove("fadeIn");
     document.getElementById("loadingDiv").classList.add("fadeOut");
@@ -689,14 +680,11 @@ function hideLoadingView() {
 
 // Optimizer
 function optimizeScene() {
-
-    // scene.skipFrustumClipping = true;
     // Hardware Scaling
     var options = new BABYLON.SceneOptimizerOptions(28, 500);
     options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
     var optimizer = new BABYLON.SceneOptimizer(scene, options);
     optimizer.start();
-
     scene.skipPointerMovePicking = true;
     scene.autoClear = false; // Color buffer
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
