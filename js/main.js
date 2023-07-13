@@ -94,7 +94,7 @@ function startGame() {
             if (timelineInterval)
                 clearInterval(timelineInterval);
         }, 1000);
-        scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.7, idle1, 0.7, false, 0.03, 0, idle1.duration, 0.8));
+        scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.7, idle1, 0.7, false, 0.02, 0, idle1.duration, 0.8));
     };
 
     // Audio Analyser
@@ -593,7 +593,7 @@ function startTimeline() {
                     jawValue = workingArray[5] / 512 * morphMultiplier_1;
                 }
 
-                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue;
+                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue*2;
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34).influence = jawValue;
                 scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34).influence = jawValue;
                 // jawOpenTeeth.influence = jawValue;
@@ -614,7 +614,7 @@ function startTimeline() {
                     newTalkingAnim = talking3;
             } while (newTalkingAnim === currentAnimation);
         
-            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.03, 50, newTalkingAnim.duration-50, 0.6));
+            scene.onBeforeRenderObservable.runCoroutineAsync(animationBlending(currentAnimation, 0.8, newTalkingAnim, 0.8, false, 0.02, 50, newTalkingAnim.duration-50, 0.6));
         }
 
     }, 1000);
