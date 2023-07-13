@@ -27,7 +27,7 @@ var animationOffset = 50;
 
 // Player
 var player;
-var modelName = "player";
+var modelName = "player_2";
 
 // Morph Targets
 var leftEye, rightEye;
@@ -402,7 +402,7 @@ function animateFaceMorphs() {
 
     // Smile
     const animateSmile = () => {
-        const random = Math.random() * 0.25 + 0.05;
+        const random = Math.random() * 0.18 + 0.02;
         const initialValue = mesh.morphTargetManager.getTarget(47).influence;
         const targetValue = random;
         animateMorphTarget(47, initialValue, targetValue, 30);
