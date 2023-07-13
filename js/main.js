@@ -616,6 +616,8 @@ function startTimeline() {
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue*2;
                 scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34).influence = jawValue;
                 scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34).influence = jawValue;
+                // scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(19).influence = jawValue*4;
+                // scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(20).influence = jawValue*4;
             });
             
         }        
