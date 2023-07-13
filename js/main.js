@@ -425,7 +425,7 @@ function animateFaceMorphs() {
 
     // Mouth Left Right
     const animateMouthLeftRight = () => {
-        const random1 = Math.random() * 0.5;
+        const random1 = Math.random() * 0.7;
         
         var randomLeftOrRight = Math.floor(Math.random() * 2);
         const mesh = scene.getMeshByName("Wolf3D_Head");
