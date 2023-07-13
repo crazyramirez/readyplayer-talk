@@ -29,7 +29,7 @@ var player;
 var modelName = "player";
 
 // Morph Targets
-var jawOpenHead, jawOpenTeeth, leftEye, rightEye;
+var leftEye, rightEye;
 var morphMultiplier_1 = 0.6;
 var morphMultiplier_2 = 0.9;
 
@@ -325,16 +325,10 @@ function importModel(model) {
             currentAnimation = scene.animationGroups[0];
             showButtonHide();
 
-            jawOpenHead = scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34);
-            jawOpenTeeth = scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34);
-
             leftEye = scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(50);
             rightEye = scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(51);
 
             console.log(scene.getMeshByName("Wolf3D_Head").morphTargetManager);
-
-            jawOpenHead.influence = 0;
-            jawOpenTeeth.influence = 0;
 
             // Jaw Forward
             scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(9).influence = 0.4;
@@ -599,9 +593,10 @@ function startTimeline() {
                     jawValue = workingArray[5] / 512 * morphMultiplier_1;
                 }
 
-                // scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue;
-                jawOpenHead.influence = jawValue;
-                jawOpenTeeth.influence = jawValue;
+                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(16).influence = jawValue;
+                scene.getMeshByName("Wolf3D_Head").morphTargetManager.getTarget(34).influence = jawValue;
+                scene.getMeshByName("Wolf3D_Teeth").morphTargetManager.getTarget(34).influence = jawValue;
+                // jawOpenTeeth.influence = jawValue;
             });
             
         }        
