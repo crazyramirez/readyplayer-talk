@@ -49,4 +49,4 @@ Main Code</b>
 <b><span>&#10003;</span>
 Try the Live DEMO</b>
 
-https://viseni.com/readyplayer_anim/
+https://viseni.com/readyplayer_talk/
