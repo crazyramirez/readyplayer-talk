@@ -1,11 +1,11 @@
 @font-face {
     font-family: helveticaNeue;
-    src: url("../resources/helveticaneue.ttf");
+    src: url("../resources/fonts/helveticaneue.ttf");
 }
 
 @font-face {
     font-family: helveticaNeueLight;
-    src: url("../resources/helveticaneue-Light.otf");
+    src: url("../resources/fonts/helveticaneue-Light.otf");
 }
 
 /* HTML -- Body */

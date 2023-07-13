@@ -12,7 +12,7 @@ var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(-90),
 var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0,0,0), scene);
 var hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
 var shadowGenerator = new BABYLON.ShadowGenerator(1024, dirLight, true);
-var videoTexture = new BABYLON.VideoTexture("vidtex","./resources/images/video.mp4", scene, true, true);
+var videoTexture = new BABYLON.VideoTexture("vidtex","./resources/videos/video.mp4", scene, true, true);
 
 var hdrTexture;
 var hdrRotation = 0;
@@ -552,8 +552,8 @@ function startTimeline() {
             });
         }
 
-        // Start Speech
-        if (timer === 4) {
+        // Start Speech after 3 seconds
+        if (timer === 3) {
             // Start Speech
             setTimeout(() => {
                 if (!talking) {
