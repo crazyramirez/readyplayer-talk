@@ -61,7 +61,8 @@ function startGame() {
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
 
     // Setup Sounds 
-    music = new BABYLON.Sound("speech", "./resources/sounds/music.mp3", scene, function () {
+    music = new BABYLON.Sound("Music", "music.wav", scene, null, {
+        loop: true
     });
 
     // SFX Using HTML Audio to prevent Silence switch on mobile devices
