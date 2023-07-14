@@ -57,8 +57,6 @@ function startGame() {
     }
     engine.runRenderLoop(toRender);
     engine.clear(new BABYLON.Color3(0, 0, 0), true, true);
-    scene.autoClear = false; // Color buffer
-    scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
 
     // Setup Sounds 
     music = new BABYLON.Sound("Music", "./resources/sounds/music.mp3", scene, null, {
@@ -677,9 +675,12 @@ function showButtonHide() {
     setTimeout(() => {
         document.getElementById("customBT").style.visibility = "visible";
         document.getElementById("customBT").classList.add("fadeIn");
-        optimizeScene();
     }, 1200);
     setPostProcessing();
+
+    setTimeout(() => {
+        optimizeScene();
+    }, 2000);
 }
 
 // Hide Loading View
@@ -699,16 +700,16 @@ function hideLoadingView() {
 
 // Optimizer
 function optimizeScene() {
-    // Hardware Scaling
-    var options = new BABYLON.SceneOptimizerOptions(28, 500);
-    options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
-    var optimizer = new BABYLON.SceneOptimizer(scene, options);
-    optimizer.start();
     scene.skipPointerMovePicking = true;
     scene.autoClear = false; // Color buffer
     scene.autoClearDepthAndStencil = false; // Depth and stencil, obviously
     scene.getAnimationRatio();
     scene.blockfreeActiveMeshesAndRenderingGroups = true;
+    // Hardware Scaling
+    var options = new BABYLON.SceneOptimizerOptions(30, 500);
+    options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
+    var optimizer = new BABYLON.SceneOptimizer(scene, options);
+    optimizer.start();
 }
 
 // Post Processing
