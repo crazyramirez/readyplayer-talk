@@ -30,6 +30,10 @@ https://docs.readyplayer.me/ready-player-me/api-reference/rest-api/avatars/get-3
 <br>
 <br>
 
+> If this tool saves you time, consider supporting its development — every contribution funds more experiments and free tools for the community. ☕
+>
+> <a href="https://www.buymeacoffee.com/crazyramirez" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50"></a>
+
 <b><span>&#10003;</span>
 Setup NPM and Install BJS</b>
 
